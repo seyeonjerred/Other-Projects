@@ -46,14 +46,14 @@ BEGIN
 		FROM (
 			SELECT row_id, id,
 				ROW_NUMBER() OVER (
-						PARTITION BY id, `TimeStamp`
-						ORDER BY id, `TimeStamp`) AS row_num
+					PARTITION BY id, `TimeStamp`
+					ORDER BY id, `TimeStamp`) AS row_num
 			FROM 
 				us_household_income1_cleaned
-		) duplicates
+			) AS duplicates
 		WHERE 
 			row_num > 1
-	);
+		);
 
 	-- 3.2 Standardization 
 	UPDATE us_household_income1_cleaned
@@ -88,33 +88,33 @@ CALL Copy_and_Clean_Data();
 
 
 -- 4. CREATE EVENT --
-	DROP EVENT run_data_cleaning;
-	CREATE EVENT run_data_cleaning
-		ON SCHEDULE EVERY 30 DAY
-	DO CALL Copy_and_Clean_Data();
+DROP EVENT run_data_cleaning;
+CREATE EVENT run_data_cleaning
+	ON SCHEDULE EVERY 30 DAY
+DO CALL Copy_and_Clean_Data();
 
-	SELECT DISTINCT TimeStamp
-	FROM us_household_income1_cleaned;
+SELECT DISTINCT TimeStamp
+FROM us_household_income1_cleaned;
 
 
 
 
 -- 5. DEBUGGING & CHECKING THAT STORED PROCEDURE WORKS --
-	SELECT row_id, id, row_num
-	FROM (
-			SELECT row_id, id,
-				ROW_NUMBER() OVER (
-					PARTITION BY id
-					ORDER BY id) AS row_num
-			FROM us_household_income1 			# to check, run: use_hold_income1_cleaned
-		) duplicates
+SELECT row_id, id, row_num
+FROM (
+	SELECT row_id, id,
+		ROW_NUMBER() OVER (
+			PARTITION BY id
+			ORDER BY id) AS row_num
+	FROM us_household_income1 			# to check, run: use_hold_income1_cleaned
+		AS ) duplicates
 	WHERE 
 		row_num > 1;
 
 
-	SELECT COUNT(row_id)
-	FROM us_household_income1; 					# to check, run: use_hold_income1_cleaned
+SELECT COUNT(row_id)
+FROM us_household_income1; 				# to check, run: use_hold_income1_cleaned
 
-	SELECT State_Name, COUNT(State_Name)
-	FROM us_household_income1 					# to check, run: use_hold_income1_cleaned
-	GROUP BY State_Name;
+SELECT State_Name, COUNT(State_Name)
+FROM us_household_income1 				# to check, run: use_hold_income1_cleaned
+GROUP BY State_Name;
